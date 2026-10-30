@@ -231,6 +231,8 @@ Rows saved by version 0.8.0 or earlier have no such condition. Upgrade and start
 <details>
 <summary><b>Developer reference: how it works</b></summary>
 
+Before changing the plugin, read [AGENTS.md](AGENTS.md), [docs/requirements.md](docs/requirements.md), [docs/adr/](docs/adr/), and [GLOSSARY.md](GLOSSARY.md).
+
 ### Parts
 
 | File | Role |
@@ -289,26 +291,13 @@ Actions of `/api/dsh-modes`:
 - **How the profile depends on the package**: read from `dependencies['dsh-modes']` in the profile's `package.json`: a version or tag (`registry`), a tarball address (`tarball`), a git address (`git`), or a path (`link`). The plugin manager's own record is not used, because `0.2.0-rc.2` does not report it.
 - **Install**: `pluginManager.installBundle(tarballAddress, { requestId })`. A tarball address does not name the installed package, so the manager accepts it over an installed package, and it restores the manifest and lockfile when the install fails or is cancelled. The Host does not wait for it: the page polls `upgradeStatus` every second. When the installer replaces the plugin during the install, the page sees an unknown action or an idle state and asks for a reload.
 
-### Verification
-
-- **Test environment**: each compatible version was installed into an isolated `DSH_HOME`.
-- **Request checks**: dsh's own local mock model plus a request-recording proxy were used to check the actual requests sent to the model:
-  - the Read-only research mode sends no tool that writes files, edits files, or runs commands;
-  - with Live prompt on, the next request of the same session carries the new prompt;
-  - when the model calls `mode_prompt`, the interface asks for approval, and after approval the next request carries the changed prompt;
-  - skills: in a new Standard session a skill turned off was missing from the catalog, a pinned skill showed the saved version's description and its loaded instructions were the saved body while the file held an edit, a skill turned off in every mode disappeared from a running session's next request, and restoring a version brought the file back after saving the edited one; checked on `0.2.0-rc.2` and `0.2.1-rc.1`;
-  - updates: a build labelled `0.5.0` found the real latest release on npm and upgraded to it through DSH's installer. The dependency became the registry tarball address and the plugin stayed enabled. `0.2.0-rc.2` asked for a restart, and `0.2.1-rc.1` replaced the plugin on the spot. The same kind of install from the Plugins page was also checked across a restart: a custom mode created before the upgrade still worked. A failed install left the manifest, lockfile, and files as they were. The latest-release answers of npm and of the China mirror pass the tarball address check. The switch, the manual check, and the development install were checked in the page;
-  - creating and importing skills: on `0.2.1-rc.2` (npm) and `0.2.1-rc.1` (source), with sample skills in Codex, Claude Code, a Claude Code plugin, and a folder, the import list showed each status, copies were written under new names where needed with the copied `name` rewritten, every mode's skill catalog (`skills.snapshot`) listed the new skills, a new skill left out of one mode was off there, and a changed source was flagged and imported again after a version was saved. Not checked through model requests: a running session picking up a new skill;
-  - tool descriptions: a new session of an edited mode sends the edited text for exactly the edited tools, a running session sends a later edit with its next request, and after a restore the next request carries the built-in text again; checked on `0.2.0-rc.2` and `0.2.1-rc.1`;
-  - uninstall: on `0.2.1-rc.2`, Standard was given skill settings, Live prompt with an edited prompt, `mode_prompt`, and a tool description edit. After `dsh plugin remove` and with the package files gone, Standard was still in the mode list, a new session started, the plugin's rows were off, and the assembled prompt carried the edited text once. Installing again brought every setting back. A Standard override saved by 0.8.0 got its conditions on the first start. Without the conditions, the same uninstall leaves Standard out of the mode list and a new session fails with `agent-preset/invalid`.
-
 ### Tests
 
 ```bash
 npm test
 ```
 
-Runs the unit tests of the three-way merge, the tool description planner, the description row, the version check helpers, the upgrade flow against a fake plugin manager, the skill settings, version files, skill policy row, and skill import (folder listing, fingerprints, copies that leave out outside links, renames, and replacements), the uninstall conditions (the rows they are added to, and how they evaluate with and without the package), and that both languages of the page have the same text.
+Runs the unit tests of the three-way merge, the tool description planner, the description row, the version check helpers, the upgrade flow against a fake plugin manager, the skill settings, version files, skill policy row, and skill import (folder listing, fingerprints, copies that leave out outside links, renames, and replacements), the uninstall conditions (the rows they are added to, and how they evaluate with and without the package), and that both languages of the page have the same text. What each feature must do, and how it was verified against real DSH versions, is in [docs/requirements.md](docs/requirements.md).
 
 </details>
 

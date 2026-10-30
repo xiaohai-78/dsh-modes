@@ -9,8 +9,9 @@
  * that mode or the manager is unavailable. `complete` and `includeRuntimeContext`
  * are fixed for each revision, like the official row: changing them reaches new
  * sessions only. The agent loop records every system prompt change in the session
- * log, and a changed system prompt invalidates the provider's prompt cache for
- * that session.
+ * log; on routes that accept later system messages it appends the new prompt after
+ * the cached history, and elsewhere it rewrites the first system message, which
+ * costs that session's prompt cache.
  */
 
 /** Section names `@deepseek-ai/dsh-system-prompt` exports as PERSONA_PREFIX_SECTION and PERSONA_SUFFIX_SECTION. */
