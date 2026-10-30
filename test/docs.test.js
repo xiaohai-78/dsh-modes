@@ -5,7 +5,8 @@ import { test } from 'node:test'
 import { fileURLToPath } from 'node:url'
 
 const root = fileURLToPath(new URL('../', import.meta.url))
-const read = path => readFile(join(root, path), 'utf8')
+// A Windows checkout may turn line endings into CRLF.
+const read = async path => (await readFile(join(root, path), 'utf8')).replace(/\r\n/g, '\n')
 const manifest = JSON.parse(await read('package.json'))
 const adrs = (await readdir(join(root, 'docs', 'adr'))).filter(name => name.endsWith('.md')).sort()
 /** The documents kept in English (`X.md`) and Chinese (`X.zh.md`). */
